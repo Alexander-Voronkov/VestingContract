@@ -19,10 +19,31 @@ describe("VestingMapping", () => {
         console.log(otherAccounts.length);
 
         console.log('start generate');
-        const rewards = Array.from({ length: 500 }, () => BigInt((Math.random() * 10).toFixed(0)) * ethers.parseEther("10"));
+        const rewards = Array.from({ length: otherAccounts.length }, () => BigInt((Math.random() * 10).toFixed(0)) * ethers.parseEther("10"));
         console.log('end generate');
 
-        const { vestingMapping } = await ignition.deploy(VestingMappingModule(cliff, otherAccounts.slice(0, 500).map(x => x.address), rewards));
+        const { vestingMapping } = await ignition.deploy(VestingMappingModule(
+            cliff, 
+            otherAccounts.slice(0, otherAccounts.length).map(x => x.address), 
+            rewards,
+            ethers.parseEther('1000')));
+            
+        const block = await ethers.provider.getBlock("latest");
+        const txs = await Promise.all(
+            block!.transactions.map((txHash: string) => ethers.provider.getTransaction(txHash))
+        );
+        const initializeTx = txs.find(tx => tx && tx.to === vestingMapping.target);
+
+        let initializeReceipt = await ethers.provider.getTransactionReceipt(initializeTx!.hash);
+
+        const gasPrice = initializeReceipt!.gasPrice;
+        const ethPrice = 2800;
+
+        const initGasUsed = initializeReceipt!.gasUsed;
+        const initCostEth = Number(initGasUsed * gasPrice) / 1e18;
+        const initCostUsd = initCostEth * ethPrice;
+        console.log(`Initialize gas used: ${initGasUsed}`);
+        console.log(`Initialize cost: ${initCostEth} ETH ($${initCostUsd.toFixed(2)})`);
 
         const typedVestingMapping = vestingMapping as unknown as VestingMapping;
 
@@ -31,6 +52,8 @@ describe("VestingMapping", () => {
 
     it('should deploy and initialize VestingMapping contract', async function () {
 
+        this.timeout(1000000);
+        
         cliffDuration = 365 * 24 * 60 * 60 * 2;
 
         const { vestingMapping, owner, otherAccounts } = await loadFixture(deployVestingMapping);

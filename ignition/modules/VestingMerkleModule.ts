@@ -1,17 +1,14 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { ethers } from "hardhat";
 
-const VestingMerkleModule = (cliffValue: number, merkleRoot: string) =>
+const VestingMerkleModule = (cliffValue: number, merkleRoot: string, amountToVest: bigint) =>
   buildModule("VestingMerkleModule", (m) => {
 
     const cliffParam = m.getParameter("cliff", cliffValue);
     const merkleRootParam = m.getParameter("merkleRoot", merkleRoot);
 
-    const vestingMapping = m.contract("VestingMapping");
+    const vestingMerkle = m.contract("VestingMerkle", [cliffParam, merkleRootParam], { value: amountToVest });
 
-    m.call(vestingMapping, "initialize", [cliffParam, merkleRootParam], { value: ethers.parseEther('1000') });
-
-    return { vestingMapping };
+    return { vestingMerkle };
   });
 
 export default VestingMerkleModule;

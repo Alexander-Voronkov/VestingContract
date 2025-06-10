@@ -11,8 +11,9 @@ contract VestingMerkle is ReentrancyGuard, Ownable {
 
     mapping(address => bool) public claimed;
 
-    constructor(uint256 _cliffDuration, bytes32 _merkleRoot) Ownable(msg.sender) payable {
-        cliff = block.timestamp + _cliffDuration;
+    constructor(uint256 _cliff, bytes32 _merkleRoot) Ownable(msg.sender) payable {
+        require(_cliff > 0 && _cliff > block.timestamp, 'Wrong cliff');
+        cliff = _cliff;
         merkleRoot = _merkleRoot;
         require(msg.value > 0, "Must send ETH for vesting");
     }

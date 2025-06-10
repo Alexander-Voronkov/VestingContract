@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import { ethers } from "hardhat";
 
-const VestingMappingModule = (cliffValue: number, recipients: string[], rewards: number[]) =>
+const VestingMappingModule = (cliffValue: number, recipients: string[], rewards: bigint[], amountToVest: bigint) =>
   buildModule("VestingMappingModule", (m) => {
     const cliff = m.getParameter(
       "cliff",
@@ -13,7 +13,7 @@ const VestingMappingModule = (cliffValue: number, recipients: string[], rewards:
 
     const vestingMapping = m.contract("VestingMapping");
 
-    m.call(vestingMapping, "initialize", [cliff, recipientsParam, rewardsParam], { value: ethers.parseEther('1000') });
+    m.call(vestingMapping, "initialize", [cliff, recipientsParam, rewardsParam], { value: amountToVest });
 
     return { vestingMapping };
   });
