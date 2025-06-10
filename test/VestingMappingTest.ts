@@ -19,7 +19,7 @@ describe("VestingMapping", () => {
         console.log(otherAccounts.length);
 
         console.log('start generate');
-        const rewards = Array.from({ length: 500 }, () => +(Math.random() * 100_000_000).toFixed(0));
+        const rewards = Array.from({ length: 500 }, () => BigInt((Math.random() * 10).toFixed(0)) * ethers.parseEther("10"));
         console.log('end generate');
 
         const { vestingMapping } = await ignition.deploy(VestingMappingModule(cliff, otherAccounts.slice(0, 500).map(x => x.address), rewards));
@@ -35,20 +35,21 @@ describe("VestingMapping", () => {
 
         const { vestingMapping, owner, otherAccounts } = await loadFixture(deployVestingMapping);
 
-        console.log('cliff', await vestingMapping.cliff());
-        console.log('time', await time.latest());
+        console.log('cliff', new Date(Number(await vestingMapping.cliff()) * 1000));
+        console.log('time', new Date(Number(await time.latest()) * 1000));
 
         await expect(vestingMapping.connect(otherAccounts[0]).claim()).reverted;
 
         await time.increase(cliffDuration);
 
-        console.log('time after mine', await time.latest());
+        console.log('time after mine', new Date(Number(await time.latest()) * 1000));
 
-        console.log('contract balance ', ethers.parseUnits((await ethers.provider.getBalance(vestingMapping)).toString()));
-        console.log('can be claimed ', await vestingMapping.cliffRewards(otherAccounts[0]));
+        console.log('contract balance ', ethers.formatEther(await ethers.provider.getBalance(vestingMapping)) + ' ETH');
+        console.log('can be claimed ', ethers.formatEther(await vestingMapping.cliffRewards(otherAccounts[0])) + ' ETH');
 
         await expect(vestingMapping.connect(otherAccounts[0]).claim()).not.reverted;
-        console.log('contract balance after claim', ethers.parseUnits((await ethers.provider.getBalance(vestingMapping)).toString()));
+        console.log('contract balance after claim', ethers.formatEther(await ethers.provider.getBalance(vestingMapping)) + ' ETH');
+        console.log('my balance after claim', ethers.formatEther(await ethers.provider.getBalance(otherAccounts[0])) + ' ETH');
     });
 
 });

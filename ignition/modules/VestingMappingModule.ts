@@ -1,6 +1,4 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { Wallet } from "ethers";
-import { VestingMapping__factory } from "../../typechain-types";
 import { ethers } from "hardhat";
 
 const VestingMappingModule = (cliffValue: number, recipients: string[], rewards: number[]) =>
@@ -15,7 +13,7 @@ const VestingMappingModule = (cliffValue: number, recipients: string[], rewards:
 
     const vestingMapping = m.contract("VestingMapping");
 
-    m.call(vestingMapping, "initialize", [cliff, recipientsParam, rewardsParam], { value: BigInt(100_000_000) });
+    m.call(vestingMapping, "initialize", [cliff, recipientsParam, rewardsParam], { value: ethers.parseEther('1000') });
 
     return { vestingMapping };
   });
